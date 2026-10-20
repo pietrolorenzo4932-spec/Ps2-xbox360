@@ -1,0 +1,33 @@
+name: Build xePS2 para Xbox 360
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Baixar o código fonte
+      uses: actions/checkout@v4
+
+    - name: Compilar usando Docker da Libxenon
+      uses: addnab/docker-run-action@v3
+      with:
+        image: libxenon/devkitppc:latest
+        options: -v ${{ github.workspace }}:/workspace
+        run: |
+          cd /workspace
+          # Força o caminho correto da toolchain dentro do Docker
+          export DEVKITPPC=/opt/devkitpro/devkitPPC
+          export LIBXENON=/usr/local/xenon
+          make
+
+    - name: Enviar o binario compilado (Artifact)
+      uses: actions/upload-artifact@v4
+      with:
+        name: xePS2-X360-Binary
+        path: xePS2.elf
